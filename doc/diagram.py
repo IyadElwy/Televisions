@@ -11,7 +11,7 @@ from diagrams.onprem.analytics import Tableau
 from diagrams.aws.compute import Lambda
 from diagrams.saas.chat import Slack
 
-with Diagram('Data Pipeline', show=False, filename='doc/data_pipeline'):
+with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipeline'):
 
     data_sources = []
     with Cluster('  Data Sources'):
