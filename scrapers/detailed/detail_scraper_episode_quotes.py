@@ -2,7 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 
-base_url = 'https://en.wikiquote.org/wiki/List_of_television_shows_'
+
+base_url = 'https://en.wikiquote.org'
 
 pages = ['(A%E2%80%93H)', '(I%E2%80%93P)', '(Q%E2%80%93Z)']
 
@@ -10,10 +11,10 @@ pages = ['(A%E2%80%93H)', '(I%E2%80%93P)', '(Q%E2%80%93Z)']
 def get_initial_tv_title_list():
     print("Starting Scraper for Wikiquote")
 
-    titles = list()
+    hrefs = list()
 
     for page in pages:
-        url = f'{base_url}{page}'
+        url = f'{base_url}/wiki/List_of_television_shows_{page}'
         print(f'Starting Page: {url}')
 
         skip_to_next_page = False
@@ -44,10 +45,36 @@ def get_initial_tv_title_list():
                         skip_to_next_page = True
                         break
 
-                    titles.append(a_tag.get_text())
+                    hrefs.append(a_tag.get('href'))
+
+        print(f'Page done: {url}')
+        sleep(3)
+
+    print("Done with Wikiquote Scraper")
+    return hrefs
+
+
+def get_quotes_from_show():
+
+    quotes = {}
+    urls = get_initial_tv_title_list()
+
+    print("Starting Detailed Scraper for Wikiquote Quotes")
+
+    for url_element in urls:
+        url = f'{base_url}{url_element}'
+        print(f'Starting Page: {url}')
+
+        response = requests.get(url)
+        assert response.status_code == 200
+
+        soup = BeautifulSoup(response.text, 'html.parser')
 
         print(f'Page done')
         sleep(3)
 
-    print("Done with Wikiquote Scraper")
-    return titles
+    print("Done with Wikiquote Quote Scraper")
+    return quotes
+
+
+get_quotes_from_show()

@@ -34,10 +34,10 @@ def get_initial_tv_title_list():
         url = f'{base_url}{page}'
         print(f'Starting Page: {url}')
 
-        result = requests.get(url)
-        assert result.status_code == 200
+        response = requests.get(url)
+        assert response.status_code == 200
 
-        soup = BeautifulSoup(result.text, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
 
         main_div = soup.select_one('#mw-content-text > div.mw-parser-output')
         assert main_div is not None
@@ -53,7 +53,7 @@ def get_initial_tv_title_list():
                 if a_tag:
                     titles.append(a_tag.get_text())
 
-        print(f'Page done: {url}')
+        print(f'Page done')
         sleep(3)
 
     print("Done with Wikipedia Scraper")

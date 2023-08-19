@@ -9,10 +9,10 @@ def get_initial_tv_titles_list():
 
     titles = list()
 
-    result = requests.get(url)
-    assert result.status_code == 200
+    response = requests.get(url)
+    assert response.status_code == 200
 
-    soup = BeautifulSoup(result.text, 'html.parser')
+    soup = BeautifulSoup(response.text, 'html.parser')
 
     tr_elements = soup.find_all('tr')
     assert tr_elements is not None
@@ -22,7 +22,6 @@ def get_initial_tv_titles_list():
         assert td_title_a_tag_element is not None
 
         a_tag = td_title_a_tag_element.find("a")
-        assert a_tag is not None
 
         if a_tag:
             titles.append(a_tag.get_text())

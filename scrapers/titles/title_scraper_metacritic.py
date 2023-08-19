@@ -48,10 +48,10 @@ def get_initial_tv_title_list():
             url = base_url.format(letter, page)
             print(f'Starting Page: {url}')
 
-            result = requests.get(url, headers=headers)
-            assert result.status_code == 200
+            response = requests.get(url, headers=headers)
+            assert response.status_code == 200
 
-            soup = BeautifulSoup(result.text, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
 
             if not does_page_exists(soup_object=soup):
                 break
@@ -69,7 +69,7 @@ def get_initial_tv_title_list():
                 if a_tag:
                     titles.append(a_tag.get_text().strip())
 
-            print(f'Page done: {url}')
+            print(f'Page done')
             sleep(3)
 
             page += 1
@@ -77,6 +77,3 @@ def get_initial_tv_title_list():
     print("Done with Metacritic Scraper")
 
     return titles
-
-
-get_initial_tv_title_list()
