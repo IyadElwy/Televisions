@@ -17,7 +17,7 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
     with Cluster('  Data Sources'):
 
         data_sources = [Custom('Wikiquote', 'assets/website.png'),
-                        Custom('Metracitric', 'assets/website.png'),
+                        Custom('Metacritic', 'assets/website.png'),
                         Custom('Wikipedia', 'assets/website.png'),
                         Custom('eztv', 'assets/website.png'),
                         Custom('TvMaze', 'assets/api.png'),]
