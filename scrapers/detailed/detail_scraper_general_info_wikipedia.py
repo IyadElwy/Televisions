@@ -1,0 +1,41 @@
+import wikipediaapi
+import json
+
+wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
+
+
+def format_text_to_sections(text):
+    result_dict = {}
+
+    split_text = text.split('\n')
+
+    current_section = 'summary'
+    for index, string in enumerate(split_text):
+        if current_section not in result_dict:
+            result_dict[current_section] = ''
+
+        if string == '' and index + 1 <= len(split_text):
+            current_section = split_text[index + 1]
+        else:
+            result_dict[current_section] += string
+
+    return result_dict
+
+
+def get_wikipedia_info(title):
+    page = wikipedia_searcher.page(title)
+
+    if not page.exists():
+        return {'data': 'page not found'}
+
+    title = page.title
+    text = page.text
+
+    output = {'title': title,
+              'sections': format_text_to_sections(text)}
+
+    return output
+
+
+def get_detailed_info_about_all():
+    pass

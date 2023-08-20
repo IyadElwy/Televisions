@@ -31,14 +31,14 @@ def detailed_single_search(query, **kwargs):
         return response.json()
 
 
-def detailed_retrieve_by_id(query, **kwargs):
+def detailed_retrieve_by_id(id, **kwargs):
     """
     embed[]=episodes&embed[]=cast
     """
 
     if kwargs:
         url = detailed_retrieve_by_id_base_url.format(
-            query,
+            id,
             ''.join(['&embed[]=' + key for key in kwargs if kwargs[key]]))
         response = requests.get(url)
         assert response.status_code == 200
@@ -46,16 +46,20 @@ def detailed_retrieve_by_id(query, **kwargs):
         return response.json()
 
     else:
-        url = detailed_retrieve_by_id_base_url.format(query, '')
+        url = detailed_retrieve_by_id_base_url.format(id, '')
         response = requests.get(url)
         assert response.status_code == 200
 
         return response.json()
 
 
-def season_detailed_retrieve_by_id(query):
-    url = season_detailed_retrieve_by_id_base_url.format(query)
+def season_detailed_retrieve_by_id(id):
+    url = season_detailed_retrieve_by_id_base_url.format(id)
     response = requests.get(url)
     assert response.status_code == 200
 
     return response.json()
+
+
+def get_detailed_info_about_all():
+    pass

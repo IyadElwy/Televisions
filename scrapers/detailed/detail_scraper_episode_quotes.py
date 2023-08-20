@@ -1,80 +1,55 @@
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
+import json
+import re
 
 
-base_url = 'https://en.wikiquote.org'
-
-pages = ['(A%E2%80%93H)', '(I%E2%80%93P)', '(Q%E2%80%93Z)']
+base_url = 'https://en.wikiquote.org/wiki/'
 
 
-def get_initial_tv_title_list():
-    print("Starting Scraper for Wikiquote")
+def check_for_nested_seasons(url):
+    urls = []
+    # check if (season_1) gets anything and if yes paginate until we have the urls of all pages that have something
+    # else return the url
+    pass
 
-    hrefs = list()
 
-    for page in pages:
-        url = f'{base_url}/wiki/List_of_television_shows_{page}'
-        print(f'Starting Page: {url}')
+def scrape_page_for_quotes(soup):
 
-        skip_to_next_page = False
+    quotes = []
 
-        response = requests.get(url)
+    dd_elements = soup.find_all("dd")
+    for dd in dd_elements:
+        quotes.append(dd.get_text())
+
+    return quotes
+
+
+def get_quotes_from_show(url):
+    tv_quotes = {'url': '',
+                 'quotes': []}
+
+    url_element = f'{base_url}{url}'
+    tv_quotes['url'] = url_element
+
+    print(f'Starting Page: {url_element}')
+
+    for current_url in check_for_nested_seasons(url):
+
+        response = requests.get(current_url)
         assert response.status_code == 200
 
         soup = BeautifulSoup(response.text, 'html.parser')
-
-        ul_elements = soup.find_all('ul')
-        assert ul_elements is not None
-
-        for ul in ul_elements:
-
-            if skip_to_next_page:
-                break
-
-            li_elements = ul.find_all('li')
-            assert li_elements is not None
-
-            for li in li_elements:
-                a_tag = li.find('a')
-
-                if a_tag:
-                    a_tag_text = a_tag.get_text()
-
-                    if a_tag_text == 'Advertising slogans':
-                        skip_to_next_page = True
-                        break
-
-                    hrefs.append(a_tag.get('href'))
-
-        print(f'Page done: {url}')
-        sleep(3)
-
-    print("Done with Wikiquote Scraper")
-    return hrefs
-
-
-def get_quotes_from_show():
-
-    quotes = {}
-    urls = get_initial_tv_title_list()
-
-    print("Starting Detailed Scraper for Wikiquote Quotes")
-
-    for url_element in urls:
-        url = f'{base_url}{url_element}'
-        print(f'Starting Page: {url}')
-
-        response = requests.get(url)
-        assert response.status_code == 200
-
-        soup = BeautifulSoup(response.text, 'html.parser')
+        quotes = scrape_page_for_quotes(soup)
+        tv_quotes['quotes'].extend(quotes)
 
         print(f'Page done')
         sleep(3)
 
-    print("Done with Wikiquote Quote Scraper")
-    return quotes
+
+print(json.dumps(get_quotes_from_show('ICarly')))
 
 
-get_quotes_from_show()
+def get_detailed_info_about_all():
+    pass
