@@ -4,10 +4,10 @@ from bs4 import BeautifulSoup
 url = 'https://eztv.re/showlist/'
 
 
-def get_initial_tv_titles_list():
+def get_initial_tv_title_list():
     print("Starting Scraper for eztv")
 
-    titles = list()
+    shows = list()
 
     response = requests.get(url)
     assert response.status_code == 200
@@ -24,8 +24,10 @@ def get_initial_tv_titles_list():
         a_tag = td_title_a_tag_element.find("a")
 
         if a_tag:
-            titles.append(a_tag.get_text())
+
+            shows.append(
+                (a_tag.get_text(), f'https://eztv.re/{a_tag.get("href")}'))
 
     print("Done with eztv Scraper")
 
-    return titles[2:]
+    return shows[2:]

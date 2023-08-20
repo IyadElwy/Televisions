@@ -28,7 +28,7 @@ pages = ['_numbers',
 def get_initial_tv_title_list():
     print("Starting Scraper for Wikipedia")
 
-    titles = list()
+    shows = list()
 
     for page in pages:
         url = f'{base_url}{page}'
@@ -51,10 +51,11 @@ def get_initial_tv_title_list():
 
             for a_tag in a_tags:
                 if a_tag:
-                    titles.append(a_tag.get_text())
+                    shows.append(
+                        (a_tag.get_text(),  f'https://en.wikipedia.org{a_tag.get("href")}'))
 
         print(f'Page done')
         sleep(3)
 
     print("Done with Wikipedia Scraper")
-    return titles[3:]
+    return shows[3:]

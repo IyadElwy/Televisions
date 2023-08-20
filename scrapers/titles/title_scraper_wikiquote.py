@@ -10,7 +10,7 @@ pages = ['(A%E2%80%93H)', '(I%E2%80%93P)', '(Q%E2%80%93Z)']
 def get_initial_tv_title_list():
     print("Starting Scraper for Wikiquote")
 
-    titles = list()
+    shows = list()
 
     for page in pages:
         url = f'{base_url}{page}'
@@ -44,10 +44,11 @@ def get_initial_tv_title_list():
                         skip_to_next_page = True
                         break
 
-                    titles.append(a_tag.get_text())
+                    shows.append(
+                        (a_tag.get_text(), f'https://en.wikiquote.org{a_tag.get("href")}'))
 
         print(f'Page done')
         sleep(3)
 
     print("Done with Wikiquote Scraper")
-    return titles
+    return shows

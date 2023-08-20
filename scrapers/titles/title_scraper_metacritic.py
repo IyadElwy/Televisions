@@ -38,7 +38,7 @@ def does_page_exists(soup_object):
 def get_initial_tv_title_list():
     print("Starting Scraper for Metacritic")
 
-    titles = list()
+    shows = list()
 
     for letter in alphabet:
         page = 0
@@ -67,7 +67,8 @@ def get_initial_tv_title_list():
                 a_tag = div.find('a')
 
                 if a_tag:
-                    titles.append(a_tag.get_text().strip())
+                    shows.append(
+                        (a_tag.get_text().strip(), f'https://www.metacritic.com{a_tag.get("href")}'))
 
             print(f'Page done')
             sleep(3)
@@ -76,4 +77,4 @@ def get_initial_tv_title_list():
 
     print("Done with Metacritic Scraper")
 
-    return titles
+    return shows
