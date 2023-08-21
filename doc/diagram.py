@@ -33,6 +33,10 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
     s3 = S3('S3')
     airflow >> load_edge >> s3
 
+    s3_saving = S3('Raw Titles Data')
+    airflow >> Edge() >> s3_saving
+    s3_saving >> Edge() >> airflow
+
     with Cluster(''):
         crawler = GlueCrawlers('Crawler')
         glue = Glue('Glue')

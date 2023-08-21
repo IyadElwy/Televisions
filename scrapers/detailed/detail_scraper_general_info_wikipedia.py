@@ -1,5 +1,4 @@
 import wikipediaapi
-import json
 
 wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
 
@@ -23,6 +22,8 @@ def format_text_to_sections(text):
 
 
 def get_wikipedia_info(title):
+    print(f'Starting page: {title}')
+
     page = wikipedia_searcher.page(title)
 
     if not page.exists():
@@ -30,10 +31,13 @@ def get_wikipedia_info(title):
 
     title = page.title
     text = page.text
+    url = page.fullurl
 
     output = {'title': title,
+              'url': url,
               'sections': format_text_to_sections(text)}
 
+    print(f'Page done')
     return output
 
 
