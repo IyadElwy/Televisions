@@ -188,7 +188,13 @@ async def async_extract_reviews_for_critic_page(initial_url):
         assert a_tags is not None
 
         for a_tag in a_tags:
-            reviews.append(a_tag.get_text().strip())
+            score = div.select(
+                'div.metascore_w')
+            assert score is not None
+
+            score = score[0].get_text() if len(score) > 0 else "50"
+            reviews.append(
+                {'review': a_tag.get_text().strip(), 'score': score})
 
     print(f'Done with critic review-page')
 
@@ -210,14 +216,19 @@ async def async_extract_reviews_for_user_page(initial_url):
 
         soup = BeautifulSoup(response_text, 'html.parser')
 
-        div_elements = soup.find_all('div', class_='review_body')
+        div_elements = soup.select('div.review')
         assert div_elements is not None
 
         for div in div_elements:
-            span = div.find('span')
-            assert span is not None
+            spans = div.find_all('span')
+            assert spans is not None
 
-            reviews.append(span.get_text())
+            score = div.find_all('div', class_='metascore_w')
+            assert score is not None
+
+            score = score[0].get_text() if len(score) > 0 else "50"
+            reviews.append({'review': [s.get_text().strip()
+                           for s in spans][2].strip(), 'score': score})
 
         print(f'Done with user review-page')
 

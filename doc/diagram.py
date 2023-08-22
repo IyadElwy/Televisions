@@ -30,10 +30,10 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
     load_edge = Edge()
     read_edge = Edge()
 
-    s3 = S3('S3')
+    s3 = S3('Analytics s3')
     airflow >> load_edge >> s3
 
-    s3_saving = S3('Raw Titles Data')
+    s3_saving = S3('Raw Titles s3')
     airflow >> Edge() >> s3_saving
     s3_saving >> Edge() >> airflow
 
