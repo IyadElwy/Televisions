@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 
 url = 'https://eztv.re/showlist/'
 
+####################################################################################
+
 
 def get_initial_tv_title_list():
     print("Starting Scraper for eztv")
@@ -30,4 +32,11 @@ def get_initial_tv_title_list():
 
     print("Done with eztv Scraper")
 
-    return shows[2:]
+    shows = shows[2:]
+    # save to rdb
+
+####################################################################################
+
+
+def start_scraper():
+    get_initial_tv_title_list()

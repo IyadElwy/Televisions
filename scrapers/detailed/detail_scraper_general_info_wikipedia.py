@@ -2,6 +2,8 @@ import wikipediaapi
 
 wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
 
+####################################################################################
+
 
 def format_text_to_sections(text):
     result_dict = {}
@@ -41,5 +43,13 @@ def get_wikipedia_info(title):
     return output
 
 
-def get_detailed_info_about_all():
+def get_detailed_info_for_all():
+    # fetch titles from rdb and loop over them
+    # then save to typesense
     pass
+
+####################################################################################
+
+
+def start_scraper():
+    get_detailed_info_for_all()
