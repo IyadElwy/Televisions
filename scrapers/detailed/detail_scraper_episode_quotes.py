@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 from time import sleep
 import aiohttp
 import asyncio
-
+from aiohttp.client_exceptions import ClientConnectionError, \
+    ClientResponseError, ClientError, TooManyRedirects, InvalidURL
 
 base_url = 'https://en.wikiquote.org/wiki/'
 
@@ -124,25 +125,34 @@ async def async_get_quotes_from_show(title_url_encoded):
     tv_quotes = {'urls': [],
                  'quotes': []}
 
-    for current_url in await async_check_for_nested_seasons(title_url_encoded):
-        print(f'Starting sub-page: {current_url}')
+    try:
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{base_url}{current_url}') as response:
-                response.raise_for_status()
-                response_text = await response.text()
+        for current_url in await async_check_for_nested_seasons(title_url_encoded):
+            print(f'Starting sub-page: {current_url}')
 
-        soup = BeautifulSoup(response_text, 'html.parser')
-        quotes = scrape_page_for_quotes(soup)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f'{base_url}{current_url}') as response:
+                    response.raise_for_status()
+                    response_text = await response.text()
 
-        tv_quotes['urls'].append(f'{base_url}{current_url}')
-        tv_quotes['quotes'].extend(quotes)
+            soup = BeautifulSoup(response_text, 'html.parser')
+            quotes = scrape_page_for_quotes(soup)
 
-        print(f'Sub-page done for {current_url}')
+            tv_quotes['urls'].append(f'{base_url}{current_url}')
+            tv_quotes['quotes'].extend(quotes)
 
-    print(f'Page done for {title_url_encoded}')
+            print(f'Sub-page done for {current_url}')
 
-    # save tv_quotes to typesense
+        print(f'Page done for {title_url_encoded}')
+
+        # save tv_quotes to typesense
+    except (ClientError, ClientConnectionError,
+            ClientResponseError, ClientError,
+            TooManyRedirects, InvalidURL) as e:
+        print({'Error': title_url_encoded,
+               'status': e.status,
+               'message': e.message,
+               })
 
 
 async def async_get_quotes_for_all():

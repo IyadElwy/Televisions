@@ -29,7 +29,9 @@ def get_wikipedia_info(title):
     page = wikipedia_searcher.page(title)
 
     if not page.exists():
-        return {'data': 'page not found'}
+        print({'not_found': title,
+               })
+        return {title: 'page not found'}
 
     title = page.title
     text = page.text
@@ -44,9 +46,13 @@ def get_wikipedia_info(title):
 
 
 def get_detailed_info_for_all():
-    # fetch titles from rdb and loop over them
-    # then save to typesense
-    pass
+    # fetch wikipedia titles from rdb and loop over them
+    titles = ['Daredevil (TV series)']
+
+    for title in titles:
+        data = get_wikipedia_info(title)
+        print(data)
+        # then save to typesense
 
 ####################################################################################
 

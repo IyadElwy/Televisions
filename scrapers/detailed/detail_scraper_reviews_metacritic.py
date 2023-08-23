@@ -4,6 +4,8 @@ from time import sleep
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
+from aiohttp.client_exceptions import ClientConnectionError, \
+    ClientResponseError, ClientError, TooManyRedirects, InvalidURL
 
 
 headers = {
@@ -238,26 +240,34 @@ async def async_extract_reviews_for_user_page(initial_url):
 
 
 async def async_get_reviews_for_show(url):
-    uniform_url = reformat_url_to_be_uniform(url)
+    try:
+        uniform_url = reformat_url_to_be_uniform(url)
 
-    critic_review_url = f'{uniform_url}/critic-reviews'
-    extracted_critic_reviews = await async_extract_reviews_for_critic_page(
-        critic_review_url)
+        critic_review_url = f'{uniform_url}/critic-reviews'
+        extracted_critic_reviews = await async_extract_reviews_for_critic_page(
+            critic_review_url)
 
-    user_review_url = f'{uniform_url}/user-reviews'
-    extracted_user_reviews = await async_extract_reviews_for_user_page(user_review_url)
+        user_review_url = f'{uniform_url}/user-reviews'
+        extracted_user_reviews = await async_extract_reviews_for_user_page(user_review_url)
 
-    result = {'critics': extracted_critic_reviews,
-              'users': extracted_user_reviews}
+        result = {'critics': extracted_critic_reviews,
+                  'users': extracted_user_reviews}
+        # save result to typesense
 
-    # save result to typesense
+    except (ClientError, ClientConnectionError,
+            ClientResponseError, ClientError,
+            TooManyRedirects, InvalidURL) as e:
+        print({'Error': url,
+               'status': e.status,
+               'message': e.message,
+               })
 
 
 async def async_get_reviews_for_all():
     tasks = []
 
     # get urls from typesense metacritic url attribute then loop over them
-    urls = ['https://www.metacritic.com/tv/secret-invasion']
+    urls = 30 * ['https://www.metacritic.com/tv/secret-invasion']
 
     for url in urls:
         tasks.append(async_get_reviews_for_show(url))
