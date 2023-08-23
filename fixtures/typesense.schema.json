@@ -1,0 +1,142 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "main_title": {
+            "type": "string"
+        },
+        "wikipedia": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "sections": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "title",
+                "url",
+                "sections"
+            ]
+        },
+        "wikiquotes": {
+            "type": "object",
+            "properties": {
+                "quotes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "metacritic": {
+            "type": "object",
+            "properties": {
+                "critic": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "review": {
+                                "type": "string"
+                            },
+                            "score": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "review",
+                            "score"
+                        ]
+                    }
+                },
+                "user": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "review": {
+                                "type": "string"
+                            },
+                            "score": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "review",
+                            "score"
+                        ]
+                    }
+                }
+            }
+        },
+        "tvMaze": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "seasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "_embedded": {
+                    "type": "object",
+                    "properties": {
+                        "cast": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "episodes": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "language",
+                "rating",
+                "summary"
+            ]
+        }
+    },
+    "required": [
+        "id",
+        "main_title",
+        "wikipedia",
+        "wikiquotes",
+        "metacritic",
+        "tvMaze"
+    ]
+}
