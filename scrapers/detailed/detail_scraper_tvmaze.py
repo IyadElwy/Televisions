@@ -131,7 +131,7 @@ async def async_season_detailed_retrieve_by_id(id):
 async def async_get_and_merge_info(title):
     print(f'Starting detail extraction for {title}')
     try:
-        single_search_result = await async_detailed_single_search(title)
+        single_search_result = await async_detailed_single_search(title, cast=True, episodes=True)
         season_search_result = await async_season_detailed_retrieve_by_id(single_search_result['id'])
         single_search_result['seasons'] = season_search_result
         data = single_search_result

@@ -5,6 +5,7 @@ import aiohttp
 import asyncio
 from aiohttp.client_exceptions import ClientConnectionError, \
     ClientResponseError, ClientError, TooManyRedirects, InvalidURL
+import json
 
 base_url = 'https://en.wikiquote.org/wiki/'
 
@@ -122,8 +123,7 @@ async def async_get_quotes_from_show(title_url_encoded):
     """
     print(f'Starting page: {title_url_encoded}')
 
-    tv_quotes = {'urls': [],
-                 'quotes': []}
+    tv_quotes = []
 
     try:
 
@@ -138,14 +138,14 @@ async def async_get_quotes_from_show(title_url_encoded):
             soup = BeautifulSoup(response_text, 'html.parser')
             quotes = scrape_page_for_quotes(soup)
 
-            tv_quotes['urls'].append(f'{base_url}{current_url}')
-            tv_quotes['quotes'].extend(quotes)
+            tv_quotes.extend(quotes)
 
             print(f'Sub-page done for {current_url}')
 
         print(f'Page done for {title_url_encoded}')
 
         # save tv_quotes to typesense
+
     except (ClientError, ClientConnectionError,
             ClientResponseError, ClientError,
             TooManyRedirects, InvalidURL) as e:
@@ -160,7 +160,7 @@ async def async_get_quotes_for_all():
 
     # get wikipedia/wikiquotes urls from typesense and loop over them
     # split to get the encoded titles at the end
-    encoded_titles = 30 * ['ICarly']
+    encoded_titles = 1 * ['ICarly']
 
     for encoded_title in encoded_titles:
         tasks.append(async_get_quotes_from_show(encoded_title))

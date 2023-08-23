@@ -1,4 +1,5 @@
 import wikipediaapi
+import json
 
 wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
 
@@ -51,7 +52,6 @@ def get_detailed_info_for_all():
 
     for title in titles:
         data = get_wikipedia_info(title)
-        print(data)
         # then save to typesense
 
 ####################################################################################
