@@ -103,7 +103,7 @@ async def async_check_for_nested_seasons(title_url_encoded):
             async with session.get(season_url) as response:
 
                 if response.status == 404 and season == 1:
-                    print('No seasons found')
+                    print(f'No seasons found for {title_url_encoded}')
                     return [title_url_encoded]
 
                 elif response.status == 404:
@@ -138,9 +138,9 @@ async def async_get_quotes_from_show(title_url_encoded):
         tv_quotes['urls'].append(f'{base_url}{current_url}')
         tv_quotes['quotes'].extend(quotes)
 
-        print(f'Sub-page done')
+        print(f'Sub-page done for {current_url}')
 
-    print(f'Page done')
+    print(f'Page done for {title_url_encoded}')
 
     # save tv_quotes to typesense
 
@@ -150,7 +150,7 @@ async def async_get_quotes_for_all():
 
     # get wikipedia/wikiquotes urls from typesense and loop over them
     # split to get the encoded titles at the end
-    encoded_titles = ['ICarly']
+    encoded_titles = 30 * ['ICarly']
 
     for encoded_title in encoded_titles:
         tasks.append(async_get_quotes_from_show(encoded_title))

@@ -39,7 +39,7 @@ def get_wikipedia_info(title):
               'url': url,
               'sections': format_text_to_sections(text)}
 
-    print(f'Page done')
+    print(f'Page done for {title}')
     return output
 
 

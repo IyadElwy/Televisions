@@ -1,3 +1,4 @@
+import json
 import requests
 from time import sleep
 from bs4 import BeautifulSoup
@@ -142,7 +143,7 @@ def get_reviews_for_show(url):
 # async functions
 
 async def async_check_and_get_pages(initial, type):
-    print(f"Checking for multiple pages for {type} review page")
+    print(f"Checking for multiple pages for {type} review page for {initial}")
     urls = []
 
     async with aiohttp.ClientSession() as session:
@@ -151,7 +152,7 @@ async def async_check_and_get_pages(initial, type):
 
     page = 0
     while True:
-        print(f'Checking page: {page}')
+        print(f'Checking page: {page} for {initial}')
         page_url = f'{initial}?page={page}'
         async with aiohttp.ClientSession() as session:
             async with session.get(page_url, headers=headers) as response:
@@ -161,7 +162,8 @@ async def async_check_and_get_pages(initial, type):
         soup = BeautifulSoup(response_text, 'html.parser')
 
         if not does_page_exists(soup, type=type):
-            print('Done looking for pages')
+            print(
+                f'Page {page} not found for {initial}. Done looking for pages.')
             return urls
 
         urls.append(page_url)
@@ -196,7 +198,7 @@ async def async_extract_reviews_for_critic_page(initial_url):
             reviews.append(
                 {'review': a_tag.get_text().strip(), 'score': score})
 
-    print(f'Done with critic review-page')
+    print(f'Done with critic review-page for {initial_url}')
 
     return reviews
 
@@ -230,7 +232,7 @@ async def async_extract_reviews_for_user_page(initial_url):
             reviews.append({'review': [s.get_text().strip()
                            for s in spans][2].strip(), 'score': score})
 
-        print(f'Done with user review-page')
+        print(f'Done with user review-page for {url}')
 
     return reviews
 
