@@ -102,7 +102,7 @@ async def async_get_initial_tv_title_list():
 
     print("Done with Wikipedia Scraper")
     shows = shows[3:]
-    # save to rdb
+    # save to s3
 
 ####################################################################################
 

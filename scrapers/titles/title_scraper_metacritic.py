@@ -134,7 +134,7 @@ async def async_get_initial_tv_title_list():
 
     print("Done with Metacritic Scraper")
 
-    # save shows to rdb
+    # save shows to s3
 
 ####################################################################################
 

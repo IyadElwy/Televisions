@@ -1,5 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+import sys
+
+from services.aws_s3 import save_titles_url_to_s3
 
 url = 'https://eztv.re/showlist/'
 
@@ -33,7 +36,7 @@ def get_initial_tv_title_list():
     print("Done with eztv Scraper")
 
     shows = shows[2:]
-    # save to rdb
+    # save to s3
 
 ####################################################################################
 
