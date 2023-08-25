@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
+from services.aws_s3 import save_titles_url_to_s3
 
 
 base_url = 'https://en.wikiquote.org/wiki/List_of_television_shows_'
@@ -107,7 +108,10 @@ async def async_get_initial_tv_title_list():
 
     print("Done with Wikiquote Scraper")
 
-    # save shows to s3
+    try:
+        save_titles_url_to_s3(shows, 'wikiquotes.json')
+    except Exception as e:
+        print("Error loading Wikiquotes titles to s3")
 
 
 ####################################################################################

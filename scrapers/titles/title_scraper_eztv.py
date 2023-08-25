@@ -36,7 +36,10 @@ def get_initial_tv_title_list():
     print("Done with eztv Scraper")
 
     shows = shows[2:]
-    # save to s3
+    try:
+        save_titles_url_to_s3(shows, 'eztv.json')
+    except Exception as e:
+        print("Error loading eztv titles to s3")
 
 ####################################################################################
 
