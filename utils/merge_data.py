@@ -76,7 +76,7 @@ def merge_dfs():
         result.normalized_title, '_', " "))
 
     print("Done merging")
-    return result.collect()
+    return result
 
 
 def merge_raw_s3_data_and_save_to_s3():
