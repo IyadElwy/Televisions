@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 
-from services.aws_s3 import save_titles_url_to_s3
+from services.aws_s3 import convert_to_json_and_save_to_s3
 
 url = 'https://eztv.re/showlist/'
 
@@ -37,7 +37,8 @@ def get_initial_tv_title_list():
 
     shows = shows[2:]
     try:
-        save_titles_url_to_s3(shows, 'eztv.json')
+        convert_to_json_and_save_to_s3(
+            shows, 'televisions-raw-titles-urls', 'eztv.json')
     except Exception as e:
         print("Error loading eztv titles to s3")
 

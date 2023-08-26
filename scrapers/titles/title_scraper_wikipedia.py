@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio
-from services.aws_s3 import save_titles_url_to_s3
+from services.aws_s3 import convert_to_json_and_save_to_s3
 
 base_url = 'https://en.wikipedia.org/wiki/List_of_television_programs:'
 pages = ['_numbers',
@@ -104,7 +104,8 @@ async def async_get_initial_tv_title_list():
     print("Done with Wikipedia Scraper")
     shows = shows[3:]
     try:
-        save_titles_url_to_s3(shows, 'wikipedia.json')
+        convert_to_json_and_save_to_s3(shows, 'televisions-raw-titles-urls',
+                                       'wikipedia.json')
     except Exception as e:
         print("Error loading Wikipedia titles to s3")
 
