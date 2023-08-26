@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from services.aws_s3 import download_and_return_json_data_from_s3, save_csv_file_stream_to_s3
-from services.aws_rds import retrieve_data, copy_from_s3_to_db
+from services.aws_rds import execute_statement, copy_from_s3_to_db
 
 from pyspark.sql import SparkSession
 from services.aws_s3 import download_and_return_json_data_from_s3
@@ -88,22 +88,18 @@ def merge_raw_s3_data_and_save_to_s3():
 
     print("Done merging.")
 
-    new_data = []
-
-    print("Saving to S3")
-    for index, row in merged_df.iterrows():
-        title = row["title"]
-
-        retrieve_data(f"SELECT * FROM tv_shows WHERE title='{title}'")
-        if len(retrieve_data) == 0:
-            new_data.append(row)
+    print("Saving merged data to S3")
 
     csv_buffer = io.BytesIO()
-    new_data_df = pd.DataFrame(new_data)
-    new_data_df.to_csv(csv_buffer, index=False, header=False, encoding='utf-8')
+    merged_df.to_csv(csv_buffer, index=False, header=False, encoding='utf-8')
     save_csv_file_stream_to_s3(csv_buffer,
                                'televisions-raw-titles-urls',
                                'merged_data.csv')
+    print('Done saving to s3')
+
+    print('Clearing database')
+    execute_statement("TRUNCATE tv_shows")
+    print('Done clearing database')
 
     print("Done merging & saving of raw data to S3")
 
