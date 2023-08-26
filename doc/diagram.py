@@ -67,3 +67,5 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
     rdbs = RDS('RDS')
     airflow >> load_edge >> rdbs
     rdbs >> read_edge >> airflow
+
+    s3_saving >> Edge() >> rdbs
