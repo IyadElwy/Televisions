@@ -75,7 +75,6 @@ def merge_dfs():
     result = result.withColumn('title', regexp_replace(
         result.normalized_title, '_', " "))
 
-    print("Done merging")
     return result
 
 
@@ -100,7 +99,6 @@ def merge_raw_s3_data_and_save_to_s3():
     execute_statement("TRUNCATE tv_shows")
     print('Done clearing database')
 
-    spark.stop()
     print("Done merging & saving of raw data to S3")
 
 
