@@ -19,3 +19,10 @@ def convert_to_json_and_save_to_s3(data, bucket_name, file_name):
     file_stream = BytesIO(json.dumps(data).encode())
     s3_client.upload_fileobj(
         file_stream, bucket_name, file_name)
+
+
+def download_and_return_json_data_from_s3(bucket_name, file_name):
+    response = s3_resource.Object(bucket_name, file_name).get()
+    json_content = response['Body'].read().decode('utf-8')
+    data = json.loads(json_content)
+    return data
