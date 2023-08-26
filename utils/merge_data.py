@@ -79,7 +79,7 @@ def merge_dfs():
     return result.collect()
 
 
-def merge_s3_data_and_save_to_rds():
+def merge_raw_s3_data_and_save_to_s3():
     print("Starting merging & saving of raw data to S3")
 
     print("Merging...")
