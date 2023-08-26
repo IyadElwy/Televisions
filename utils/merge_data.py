@@ -27,9 +27,12 @@ def return_dfs(bucket_name, file_names):
 
 
 def merge_dfs():
+    print("Retrieving s3 data")
     dfs = return_dfs('televisions-raw-titles-urls',
                      ['eztv.json', 'wikipedia.json',
                       'wikiquotes.json', 'metacritic.json'])
+    print("Done retrieving s3 data")
+
     eztv_df = dfs[0]
     wikipedia_df = dfs[1]
     wikiquotes_df = dfs[2]
@@ -69,11 +72,18 @@ def merge_dfs():
     result = result.withColumn('title', regexp_replace(
         result.normalized_title, '_', " "))
 
+    print("Done merging")
     return result.collect()
 
 
-def save_to_rds():
+def merge_s3_data_and_save_to_rds():
+    print("Starting merging & saving of S3 raw data to RDS")
+
+    print("Merging...")
     rows = merge_dfs()
+    print("Done merging.")
+
+    print("Saving to rds")
     for row in rows:
         title = row["title"]
         normalized_title = row["normalized_title"]
@@ -82,10 +92,11 @@ def save_to_rds():
         eztv_url = row["eztv_url"] if row["eztv_url"] else "Not Found"
         metacritic_url = row["metacritic_url"] if row["metacritic_url"] else "Not Found"
 
-        save_to_rds(title, normalized_title, wikipedia_url,
-                    wikiquotes_url, metacritic_url, eztv_url)
+        insert_into_db(title, normalized_title, wikipedia_url,
+                       wikiquotes_url, metacritic_url, eztv_url)
+
+        print(f'Saved f{row["title"]}')
 
     spark.stop()
 
-
-save_to_rds()
+    print("Done merging & saving of S3 raw data to RDS")

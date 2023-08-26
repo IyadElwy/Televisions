@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from scrapers.titles import title_scraper_eztv, title_scraper_metacritic, \
     title_scraper_wikipedia, title_scraper_wikiquote
+from utils.merge_data import merge_s3_data_and_save_to_rds
 from datetime import datetime
 
 default_args = {
@@ -31,6 +32,12 @@ with DAG('title_scrapers',
         task_id='metacritic_title_scraping',
         dag=dag)
 
+    merger_saver = PythonOperator(
+        python_callable=merge_s3_data_and_save_to_rds,
+        task_id='merge_s3_and_save_to_rds',
+        dag=dag)
+
     eztv_title_scraper.set_downstream(wikipedia_title_scraper)
     wikipedia_title_scraper.set_downstream(wikiquotes_title_scraper)
     wikiquotes_title_scraper.set_downstream(metacritic_title_scraper)
+    metacritic_title_scraper.set_downstream(merger_saver)
