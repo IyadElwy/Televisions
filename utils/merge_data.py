@@ -1,11 +1,14 @@
 from pyspark.sql import SparkSession
-from services.aws_s3 import download_and_return_json_data_from_s3
-from services.aws_rds import insert_into_db
+from services.aws_s3 import download_and_return_json_data_from_s3, save_csv_file_stream_to_s3
+from services.aws_rds import retrieve_data, copy_from_s3_to_db
 
 from pyspark.sql import SparkSession
 from services.aws_s3 import download_and_return_json_data_from_s3
 from pyspark.sql.functions import col, regexp_replace, trim
 from pyspark.sql.functions import col, lower, regexp_replace
+import io
+
+import pandas as pd
 
 
 spark = SparkSession.builder.appName("airflow_data_merger").getOrCreate()
@@ -77,26 +80,35 @@ def merge_dfs():
 
 
 def merge_s3_data_and_save_to_rds():
-    print("Starting merging & saving of S3 raw data to RDS")
+    print("Starting merging & saving of raw data to S3")
 
     print("Merging...")
-    rows = merge_dfs()
-    print("Done merging.")
-
-    print("Saving to rds")
-    for row in rows:
-        title = row["title"]
-        normalized_title = row["normalized_title"]
-        wikipedia_url = row["wikipedia_url"] if row["wikipedia_url"] else "Not Found"
-        wikiquotes_url = row["wikiquotes_url"] if row["wikiquotes_url"] else "Not Found"
-        eztv_url = row["eztv_url"] if row["eztv_url"] else "Not Found"
-        metacritic_url = row["metacritic_url"] if row["metacritic_url"] else "Not Found"
-
-        insert_into_db(title, normalized_title, wikipedia_url,
-                       wikiquotes_url, metacritic_url, eztv_url)
-
-        print(f'Saved f{row["title"]}')
-
+    merged_df = merge_dfs().toPandas()
     spark.stop()
 
-    print("Done merging & saving of S3 raw data to RDS")
+    print("Done merging.")
+
+    new_data = []
+
+    print("Saving to S3")
+    for index, row in merged_df.iterrows():
+        title = row["title"]
+
+        retrieve_data(f"SELECT * FROM tv_shows WHERE title='{title}'")
+        if len(retrieve_data) == 0:
+            new_data.append(row)
+
+    csv_buffer = io.BytesIO()
+    new_data_df = pd.DataFrame(new_data)
+    new_data_df.to_csv(csv_buffer, index=False, header=False, encoding='utf-8')
+    save_csv_file_stream_to_s3(csv_buffer,
+                               'televisions-raw-titles-urls',
+                               'merged_data.csv')
+
+    print("Done merging & saving of raw data to S3")
+
+
+def copy_merged_data_from_s3_to_rds():
+    print("Starting copy of merged data to postgres rds")
+    copy_from_s3_to_db('televisions-raw-titles-urls', 'merged_data.csv')
+    print('Done with copying the data')

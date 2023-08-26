@@ -67,3 +67,28 @@ def execute_statement(statement):
         cursor = rdb.conn.cursor()
         cursor.execute(statement)
         rdb.conn.commit()
+
+
+def copy_from_s3_to_db(bucket_name, file_name):
+    with RdsDbConnection() as rdb:
+        command = """
+            with s3 AS (
+                SELECT aws_commons.create_s3_uri(
+                    '{bucket}',
+                    '{filename}',
+                    '{region}'
+                ) as uri
+            )
+            SELECT aws_s3.table_import_from_s3(
+                'tv_shows', 'title, normalized_title, wikipedia_url, wikiquotes_url, 
+                metacritic_url, eztv_url', '(format csv, DELIMITER '','')',
+                (select uri from s3), 
+                aws_commons.create_aws_credentials('{access_key}', '{secret_key}', '')
+            )
+        """
+        query = command.format(bucket=bucket_name, filename=file_name,
+                               region=config('REGION'), access_key=config('AWS_ACCESS_KEY'),
+                               secret_key=config('AWS_SECRET_ACCESS_KEY'))
+        cursor = rdb.conn.cursor()
+        cursor.execute(query)
+        rdb.conn.commit()

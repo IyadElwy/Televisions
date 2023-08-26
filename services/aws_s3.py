@@ -26,3 +26,9 @@ def download_and_return_json_data_from_s3(bucket_name, file_name):
     json_content = response['Body'].read().decode('utf-8')
     data = json.loads(json_content)
     return data
+
+
+def save_csv_file_stream_to_s3(csv_buffer, bucket_name, file_name):
+    csv_buffer.seek(0)
+    s3_client.upload_fileobj(
+        csv_buffer, bucket_name, file_name)
