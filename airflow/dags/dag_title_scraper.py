@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from scrapers.titles import title_scraper_eztv, title_scraper_metacritic, \
     title_scraper_wikipedia, title_scraper_wikiquote
-from utils.merge_data import merge_raw_s3_data_and_save_to_s3, copy_from_s3_to_db
+from utils.merge_data import merge_raw_s3_data_and_save_to_s3, copy_merged_data_from_s3_to_rds
 from datetime import datetime
 
 default_args = {
@@ -38,7 +38,7 @@ with DAG('title_scrapers',
         dag=dag)
 
     s3_raw_to_db = PythonOperator(
-        python_callable=copy_from_s3_to_db,
+        python_callable=copy_merged_data_from_s3_to_rds,
         task_id='copy_from_s3_to_db',
         dag=dag)
 
