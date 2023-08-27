@@ -52,7 +52,7 @@ def get_detailed_info_for_all():
 
     for title in titles:
         data = get_wikipedia_info(title)
-        # then save to typesense
+        # then save to CosmoDB
 
 ####################################################################################
 

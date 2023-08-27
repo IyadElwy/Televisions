@@ -140,7 +140,7 @@ async def async_get_and_merge_info(title, record_to_merge):
         data['wikiquote_url'] = record_to_merge[3]
         data['metacritic_url'] = record_to_merge[4]
         data['eztv_url'] = record_to_merge[5]
-        # save_to_typesense(data)
+        # save_to_cosmoDB(data)
         print(f'Extraction done for {title}')
         return data
 

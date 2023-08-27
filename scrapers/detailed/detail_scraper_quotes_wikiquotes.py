@@ -144,7 +144,7 @@ async def async_get_quotes_from_show(title_url_encoded):
 
         print(f'Page done for {title_url_encoded}')
 
-        # save tv_quotes to typesense
+        # save tv_quotes to CosmoDB
 
     except (ClientError, ClientConnectionError,
             ClientResponseError, ClientError,
@@ -158,7 +158,7 @@ async def async_get_quotes_from_show(title_url_encoded):
 async def async_get_quotes_for_all():
     tasks = []
 
-    # get wikipedia/wikiquotes urls from typesense and loop over them
+    # get wikipedia/wikiquotes urls from CosmoDB and loop over them
     # split to get the encoded titles at the end
     encoded_titles = 1 * ['ICarly']
 

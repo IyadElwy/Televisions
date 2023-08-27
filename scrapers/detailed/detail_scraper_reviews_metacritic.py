@@ -252,7 +252,7 @@ async def async_get_reviews_for_show(url):
 
         result = {'critics': extracted_critic_reviews,
                   'users': extracted_user_reviews}
-        # save result to typesense
+        # save result to CosmoDB
 
     except (ClientError, ClientConnectionError,
             ClientResponseError, ClientError,
@@ -266,7 +266,7 @@ async def async_get_reviews_for_show(url):
 async def async_get_reviews_for_all():
     tasks = []
 
-    # get urls from typesense metacritic url attribute then loop over them
+    # get urls from cosmoDB metacritic url attribute then loop over them
     urls = 30 * ['https://www.metacritic.com/tv/secret-invasion']
 
     for url in urls:
