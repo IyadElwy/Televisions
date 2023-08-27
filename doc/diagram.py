@@ -10,6 +10,7 @@ from diagrams.aws.analytics import GlueCrawlers,\
 from diagrams.onprem.analytics import Tableau
 from diagrams.aws.compute import Lambda
 from diagrams.saas.chat import Slack
+from diagrams.azure.database import CosmosDb
 
 with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipeline'):
 
@@ -61,8 +62,9 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
     redshift >> Quicksight("Quicksight")
     redshift >> Tableau("Tableau")
 
-    airflow >> load_edge >> Custom(
-        'Typesense NoSQL', 'assets/typesense.png')
+    # airflow >> load_edge >> Custom(
+    #     'Typesense NoSQL', 'assets/typesense.png')
+    airflow >> load_edge >> CosmosDb('Cosmos DB NoSql')
 
     rdbs = RDS('RDS')
     airflow >> load_edge >> rdbs
