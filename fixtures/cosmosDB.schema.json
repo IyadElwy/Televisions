@@ -1,0 +1,43 @@
+{
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "title": {
+            "type": "string"
+        },
+        "normalized_title": {
+            "type": "string"
+        },
+        "wikipedia_url": {
+            "type": "string"
+        },
+        "wikiquotes_url": {
+            "type": "string"
+        },
+        "eztv_url": {
+            "type": "string"
+        },
+        "metacritic_url": {
+            "type": "string"
+        },
+        "wikipedia": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "wikiquotes": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "metacritic": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "tvMaze": {
+            "type": "object",
+            "additionalProperties": true
+        }
+    }
+}
