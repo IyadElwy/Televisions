@@ -4,6 +4,7 @@ import aiohttp
 import asyncio
 from aiohttp.client_exceptions import ClientConnectionError, ClientResponseError
 from time import sleep
+from services.aws_rds import retrieve_data
 
 detailed_single_search_base_url = 'https://api.tvmaze.com/singlesearch/shows?q={}{}'
 
@@ -128,15 +129,20 @@ async def async_season_detailed_retrieve_by_id(id):
             return await response.json()
 
 
-async def async_get_and_merge_info(title):
+async def async_get_and_merge_info(title, record_to_merge):
     print(f'Starting detail extraction for {title}')
     try:
         single_search_result = await async_detailed_single_search(title, cast=True, episodes=True)
         season_search_result = await async_season_detailed_retrieve_by_id(single_search_result['id'])
         single_search_result['seasons'] = season_search_result
         data = single_search_result
-        # save to typesense
+        data['wikipedia_url'] = record_to_merge[2]
+        data['wikiquote_url'] = record_to_merge[3]
+        data['metacritic_url'] = record_to_merge[4]
+        data['eztv_url'] = record_to_merge[5]
+        # save_to_typesense(data)
         print(f'Extraction done for {title}')
+        return data
 
     except ClientResponseError as not_found:
 
@@ -148,47 +154,31 @@ async def async_get_and_merge_info(title):
     except ClientConnectionError as e:
         print("Limit reached, sleeping for 10 seconds...", title)
         await asyncio.sleep(10)
-        return await async_get_and_merge_info(title)
+        return await async_get_and_merge_info(title, record_to_merge)
+
+
+async def process_title(title, record_to_merge):
+    return await async_get_and_merge_info(title, record_to_merge)
 
 
 async def async_get_detailed_info_about_all():
     tasks = []
 
-    titles = ['dededee',
-              "Game of Thrones",
-              "Stranger Things",
-              "Breaking Bad",
-              "The Crown",
-              "Friends",
-              "The Office",
-              "The Simpsons",
-              "The Mandalorian",
-              "The Walking Dead",
-              "Sherlock",
-              "Black Mirror",
-              "Westworld",
-              "The Big Bang Theory",
-              "Fargo",
-              "Mindhunter",
-              "Parks and Recreation",
-              "House of Cards",
-              "Narcos",
-              "Chernobyl",
-              "The Witcher",
-              "Dexter",
-              "Better Call Saul",
-              "The Haunting of Hill House",
-              "Peaky Blinders",
-              "Stranger Things",
-              "The Umbrella Academy",
-              "Money Heist",
-              "The Handmaid's Tale",
-              "Ozark",
-              "The Expanse"
-              ]
+    chunk_size = 100
+    offset = 0
 
-    for title in titles:
-        tasks.append(async_get_and_merge_info(title))
+    print('Retrieving chunks from Postgres RDS')
+    while True:
+        records = retrieve_data(
+            f'SELECT * FROM tv_shows LIMIT {chunk_size} OFFSET {offset}')
+
+        if not records:
+            break
+
+        tasks.extend([process_title(record[-1], record) for record in records])
+
+        print(f'Got chunk starting with offset {offset}')
+        offset += chunk_size
 
     return await asyncio.gather(*tasks)
 
@@ -196,4 +186,6 @@ async def async_get_detailed_info_about_all():
 
 
 def start_scraper():
+    print("Starting detailed scraper for tv maze")
     asyncio.run(async_get_detailed_info_about_all())
+    print("Done with detailed scraper for tv maze")
