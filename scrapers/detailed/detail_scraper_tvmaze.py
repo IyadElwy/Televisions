@@ -5,6 +5,9 @@ import asyncio
 from aiohttp.client_exceptions import ClientConnectionError, ClientResponseError
 from time import sleep
 from services.aws_rds import retrieve_data
+from services.azure_cosmos_db import CosmosDbConnection
+from pathlib import Path
+from azure.cosmos.exceptions import CosmosResourceExistsError
 
 detailed_single_search_base_url = 'https://api.tvmaze.com/singlesearch/shows?q={}{}'
 
@@ -129,6 +132,59 @@ async def async_season_detailed_retrieve_by_id(id):
             return await response.json()
 
 
+def save_json_to_local_temp_file(data, filename):
+    with open(f'temp/{filename}', 'a+') as file:
+        file.write(json.dumps(data) + '\n')
+
+
+def merge_data():
+    merged_data_items = {}
+
+    with open(f'temp/temp_tv_maze_data.ndjson', 'r') as file:
+        for line in file:
+            data = json.loads(line)
+            if data['id'] not in merged_data_items:
+                merged_data_items[data['id']] = data
+            else:
+                existing_data = merged_data_items[data['id']]
+                urls = {
+                    'wikipedia_url':  existing_data["wikipedia_url"],
+                    'wikiquote_url': existing_data["wikiquote_url"],
+                    'metacritic_url': existing_data["metacritic_url"],
+                    'eztv_url': existing_data["eztv_url"],
+                }
+
+                for url in urls.keys():
+                    if not urls[url] and data[url]:
+                        merged_data_items[data['id']][url] = data[url]
+
+    with open(f'temp/merged_temp_tv_maze_data.ndjson', 'a+') as file:
+        for item in merged_data_items.values():
+            file.write(json.dumps(item) + '\n')
+
+
+def read_merged_data_and_save_to_cosmoDB():
+    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+        with CosmosDbConnection() as connection:
+            container = connection.container
+            for line in file:
+                data = json.loads(line)
+                data['id'] = str(data['id'])
+                try:
+                    container.create_item(body=data)
+                    print(f'Saved f{data["name"]}')
+                except CosmosResourceExistsError as e:
+                    print(f'Already exists {data["name"]}')
+
+    file_path_data = Path('temp/temp_tv_maze_data.ndjson')
+    file_path_merged_data = Path('temp/merged_temp_tv_maze_data.ndjson')
+
+    if file_path_data.exists():
+        file_path_data.unlink()
+    if file_path_merged_data.exists():
+        file_path_merged_data.unlink()
+
+
 async def async_get_and_merge_info(title, record_to_merge):
     print(f'Starting detail extraction for {title}')
     try:
@@ -140,7 +196,7 @@ async def async_get_and_merge_info(title, record_to_merge):
         data['wikiquote_url'] = record_to_merge[3]
         data['metacritic_url'] = record_to_merge[4]
         data['eztv_url'] = record_to_merge[5]
-        # save_to_cosmoDB(data)
+        save_json_to_local_temp_file(data, 'temp_tv_maze_data.ndjson')
         print(f'Extraction done for {title}')
         return data
 
@@ -189,3 +245,13 @@ def start_scraper():
     print("Starting detailed scraper for tv maze")
     asyncio.run(async_get_detailed_info_about_all())
     print("Done with detailed scraper for tv maze")
+    print('Written data locally')
+    print('Starting merging of data')
+    merge_data()
+    print('Done with merging of data')
+    print('Starting saving of data')
+    read_merged_data_and_save_to_cosmoDB()
+    print('Done saving data')
+
+
+start_scraper()
