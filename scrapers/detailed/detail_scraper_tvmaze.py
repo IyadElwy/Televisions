@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 import aiohttp
@@ -235,7 +236,6 @@ async def async_get_detailed_info_about_all(file):
 
         print(f'Got chunk starting with offset {offset}')
         offset += chunk_size
-        break
 
     return await asyncio.gather(*tasks)
 
@@ -243,7 +243,9 @@ async def async_get_detailed_info_about_all(file):
 
 
 def start_scraper():
-    file = open('temp/temp_tv_maze_data.ndjson', mode='a+')
+    if not os.path.exists('temp'):
+        os.makedirs('temp')
+    file = open('temp/temp_tv_maze_data.ndjson', mode='a')
     print("Starting detailed scraper for tv maze")
     asyncio.run(async_get_detailed_info_about_all(file))
     file.close()
