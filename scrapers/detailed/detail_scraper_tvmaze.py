@@ -213,8 +213,8 @@ async def async_get_and_merge_info(title, record_to_merge, file):
         return await async_get_and_merge_info(title, record_to_merge, file)
 
 
-async def process_title(title, record_to_merge, file):
-    return await async_get_and_merge_info(title, record_to_merge, file)
+# async def process_title(title, record_to_merge, file):
+#     return await async_get_and_merge_info(title, record_to_merge, file)
 
 
 async def async_get_detailed_info_about_all(file):
@@ -231,7 +231,7 @@ async def async_get_detailed_info_about_all(file):
         if not records:
             break
 
-        tasks.extend([process_title(record[-1], record, file)
+        tasks.extend([async_get_and_merge_info(record[-1], record, file)
                      for record in records])
 
         print(f'Got chunk starting with offset {offset}')

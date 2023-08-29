@@ -54,7 +54,14 @@ def get_detailed_info_for_all():
         for line in file:
             parsed_info = json.dumps(line)
             id = parsed_info['id']
-            data = get_wikipedia_info(parsed_info['name'])
+            if 'wikipedia_url' not in parsed_info or not parsed_info['wikipedia_url']:
+                continue
+            wikipedia_url = parsed_info['wikipedia_url']
+            slug = wikipedia_url.split('wiki/')
+            if len(slug) == 0:
+                continue
+            title = slug[-1].replace('-', ' ').replace('_', ' ')
+            data = get_wikipedia_info(title)
             update_item_with_attribute(parsed_info['id'], 'wikipedia', data)
             print(
                 f'Updated data on CosmosDB with wikipedia data show with id: {id}')
