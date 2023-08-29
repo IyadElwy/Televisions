@@ -132,9 +132,8 @@ async def async_season_detailed_retrieve_by_id(id):
             return await response.json()
 
 
-def save_json_to_local_temp_file(data, filename):
-    with open(f'temp/{filename}', 'a+') as file:
-        file.write(json.dumps(data) + '\n')
+def save_json_to_local_temp_file(file, data):
+    file.write(json.dumps(data) + '\n')
 
 
 def merge_data():
@@ -185,7 +184,7 @@ def read_merged_data_and_save_to_cosmoDB():
         file_path_merged_data.unlink()
 
 
-async def async_get_and_merge_info(title, record_to_merge):
+async def async_get_and_merge_info(title, record_to_merge, file):
     print(f'Starting detail extraction for {title}')
     try:
         single_search_result = await async_detailed_single_search(title, cast=True, episodes=True)
@@ -196,7 +195,7 @@ async def async_get_and_merge_info(title, record_to_merge):
         data['wikiquote_url'] = record_to_merge[3]
         data['metacritic_url'] = record_to_merge[4]
         data['eztv_url'] = record_to_merge[5]
-        save_json_to_local_temp_file(data, 'temp_tv_maze_data.ndjson')
+        save_json_to_local_temp_file(file, data)
         print(f'Extraction done for {title}')
         return data
 
@@ -210,14 +209,14 @@ async def async_get_and_merge_info(title, record_to_merge):
     except ClientConnectionError as e:
         print("Limit reached, sleeping for 10 seconds...", title)
         await asyncio.sleep(10)
-        return await async_get_and_merge_info(title, record_to_merge)
+        return await async_get_and_merge_info(title, record_to_merge, file)
 
 
-async def process_title(title, record_to_merge):
-    return await async_get_and_merge_info(title, record_to_merge)
+async def process_title(title, record_to_merge, file):
+    return await async_get_and_merge_info(title, record_to_merge, file)
 
 
-async def async_get_detailed_info_about_all():
+async def async_get_detailed_info_about_all(file):
     tasks = []
 
     chunk_size = 100
@@ -231,10 +230,12 @@ async def async_get_detailed_info_about_all():
         if not records:
             break
 
-        tasks.extend([process_title(record[-1], record) for record in records])
+        tasks.extend([process_title(record[-1], record, file)
+                     for record in records])
 
         print(f'Got chunk starting with offset {offset}')
         offset += chunk_size
+        break
 
     return await asyncio.gather(*tasks)
 
@@ -242,8 +243,10 @@ async def async_get_detailed_info_about_all():
 
 
 def start_scraper():
+    file = open('temp/temp_tv_maze_data.ndjson', mode='a+')
     print("Starting detailed scraper for tv maze")
-    asyncio.run(async_get_detailed_info_about_all())
+    asyncio.run(async_get_detailed_info_about_all(file))
+    file.close()
     print("Done with detailed scraper for tv maze")
     print('Written data locally')
     print('Starting merging of data')
