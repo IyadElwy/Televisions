@@ -1,6 +1,8 @@
 import wikipediaapi
 import json
 
+from utils.merging_with_cosmosDB import update_item_with_attribute
+
 wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
 
 ####################################################################################
@@ -47,12 +49,16 @@ def get_wikipedia_info(title):
 
 
 def get_detailed_info_for_all():
-    # fetch wikipedia titles from rdb and loop over them
-    titles = ['Daredevil (TV series)']
+    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
 
-    for title in titles:
-        data = get_wikipedia_info(title)
-        # then save to CosmoDB
+        for line in file:
+            parsed_info = json.dumps(line)
+            id = parsed_info['id']
+            data = get_wikipedia_info(parsed_info['name'])
+            update_item_with_attribute(parsed_info['id'], 'wikipedia', data)
+            print(
+                f'Updated data on CosmosDB with wikipedia data show with id: {id}')
+
 
 ####################################################################################
 

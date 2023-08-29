@@ -252,6 +252,3 @@ def start_scraper():
     print('Starting saving of data')
     read_merged_data_and_save_to_cosmoDB()
     print('Done saving data')
-
-
-start_scraper()

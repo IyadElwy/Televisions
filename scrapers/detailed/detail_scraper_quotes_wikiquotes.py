@@ -1,3 +1,4 @@
+from urllib.parse import urlparse, parse_qs
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
@@ -6,6 +7,8 @@ import asyncio
 from aiohttp.client_exceptions import ClientConnectionError, \
     ClientResponseError, ClientError, TooManyRedirects, InvalidURL
 import json
+
+from utils.merging_with_cosmosDB import update_item_with_attribute
 
 base_url = 'https://en.wikiquote.org/wiki/'
 
@@ -117,7 +120,7 @@ async def async_check_for_nested_seasons(title_url_encoded):
                     season += 1
 
 
-async def async_get_quotes_from_show(title_url_encoded):
+async def async_get_quotes_from_show(title_url_encoded, id):
     """
     title can come from wikiquotes url or wikipedia url (same format for titles in url)
     """
@@ -144,7 +147,9 @@ async def async_get_quotes_from_show(title_url_encoded):
 
         print(f'Page done for {title_url_encoded}')
 
-        # save tv_quotes to CosmoDB
+        update_item_with_attribute(id, 'wikiquotes', tv_quotes)
+        print(
+            f'Updated data on CosmosDB with wikipedia data show with id: {id}')
 
     except (ClientError, ClientConnectionError,
             ClientResponseError, ClientError,
@@ -158,12 +163,20 @@ async def async_get_quotes_from_show(title_url_encoded):
 async def async_get_quotes_for_all():
     tasks = []
 
-    # get wikipedia/wikiquotes urls from CosmoDB and loop over them
-    # split to get the encoded titles at the end
-    encoded_titles = 1 * ['ICarly']
+    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+        for line in file:
+            parsed_info = json.dumps(line)
+            if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:
+                continue
 
-    for encoded_title in encoded_titles:
-        tasks.append(async_get_quotes_from_show(encoded_title))
+            parsed_url = urlparse(parsed_info['wikiquote_url'])
+            query_params = parse_qs(parsed_url.query)
+            title_value = query_params.get('title', [None])[0]
+            if not title_value:
+                continue
+
+            tasks.append(async_get_quotes_from_show(
+                title_value, parsed_info['id']))
 
     return await asyncio.gather(*tasks)
 

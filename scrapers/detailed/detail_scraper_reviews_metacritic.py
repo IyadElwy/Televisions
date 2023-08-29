@@ -8,6 +8,8 @@ from aiohttp.client_exceptions import ClientConnectionError, \
     ClientResponseError, ClientError, TooManyRedirects, InvalidURL
 
 
+from utils.merging_with_cosmosDB import update_item_with_attribute
+
 headers = {
     "authority": "www.metacritic.com",
     "scheme": "https",
@@ -239,7 +241,7 @@ async def async_extract_reviews_for_user_page(initial_url):
     return reviews
 
 
-async def async_get_reviews_for_show(url):
+async def async_get_reviews_for_show(url, id):
     try:
         uniform_url = reformat_url_to_be_uniform(url)
 
@@ -252,7 +254,10 @@ async def async_get_reviews_for_show(url):
 
         result = {'critics': extracted_critic_reviews,
                   'users': extracted_user_reviews}
-        # save result to CosmoDB
+
+        update_item_with_attribute(id, 'metacritic', result)
+        print(
+            f'Updated data on CosmosDB with wikipedia data show with id: {id}')
 
     except (ClientError, ClientConnectionError,
             ClientResponseError, ClientError,
@@ -266,11 +271,14 @@ async def async_get_reviews_for_show(url):
 async def async_get_reviews_for_all():
     tasks = []
 
-    # get urls from cosmoDB metacritic url attribute then loop over them
-    urls = 30 * ['https://www.metacritic.com/tv/secret-invasion']
+    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+        for line in file:
+            parsed_info = json.dumps(line)
+            if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
+                continue
 
-    for url in urls:
-        tasks.append(async_get_reviews_for_show(url))
+        tasks.append(async_get_reviews_for_show(
+            parsed_info['metacritic_url'], parsed_info['id']))
 
     return await asyncio.gather(*tasks)
 
