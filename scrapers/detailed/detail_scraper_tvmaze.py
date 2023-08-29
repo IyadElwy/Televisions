@@ -234,10 +234,13 @@ async def async_get_detailed_info_about_all(file):
         tasks.extend([async_get_and_merge_info(record[-1], record, file)
                      for record in records])
 
+        await asyncio.gather(*tasks)
+        tasks = []
+
         print(f'Got chunk starting with offset {offset}')
         offset += chunk_size
 
-    return await asyncio.gather(*tasks)
+    return
 
 ####################################################################################
 
