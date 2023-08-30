@@ -163,7 +163,7 @@ async def async_get_quotes_from_show(title_url_encoded, id):
 async def async_get_quotes_for_all():
     tasks = []
 
-    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+    with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
         for line in file:
             parsed_info = json.dumps(line)
             if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:

@@ -49,7 +49,7 @@ def get_wikipedia_info(title):
 
 
 def get_detailed_info_for_all():
-    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+    with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
 
         for line in file:
             parsed_info = json.dumps(line)

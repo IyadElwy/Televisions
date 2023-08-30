@@ -271,7 +271,7 @@ async def async_get_reviews_for_show(url, id):
 async def async_get_reviews_for_all():
     tasks = []
 
-    with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
+    with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
         for line in file:
             parsed_info = json.dumps(line)
             if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
