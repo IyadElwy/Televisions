@@ -52,7 +52,7 @@ def get_detailed_info_for_all():
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
 
         for line in file:
-            parsed_info = json.dumps(line)
+            parsed_info = json.loads(line)
             id = parsed_info['id']
             if 'wikipedia_url' not in parsed_info or not parsed_info['wikipedia_url']:
                 continue
