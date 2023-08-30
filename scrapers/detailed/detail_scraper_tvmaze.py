@@ -167,8 +167,11 @@ def update_or_create_item_with_attribute(container, id, attribute_name, attribut
     try:
         show = list(container.query_items(
             query=f'SELECT * FROM c WHERE c.id="{id}"',
-            enable_cross_partition_query=True))[0]
+            enable_cross_partition_query=True))
+        if len(show) == 0:
+            raise CosmosResourceNotFoundError()
 
+        show = show[0]
         show[attribute_name] = attribute_body
         container.replace_item(item=id, body=show)
 

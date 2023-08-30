@@ -22,8 +22,12 @@ def update_item_with_attribute(id, attribute_name, attribute_body):
         with CosmosDbConnection() as conn:
             show = list(conn.container.query_items(
                 query=f'SELECT * FROM c WHERE c.id="{id}"',
-                enable_cross_partition_query=True))[0]
+                enable_cross_partition_query=True))
 
+            if len(show) == 0:
+                raise exceptions.CosmosResourceNotFoundError()
+
+            show = show[0]
             show[attribute_name] = attribute_body
             conn.container.replace_item(item=id, body=show)
     except exceptions.CosmosResourceNotFoundError as e:
