@@ -146,7 +146,6 @@ async def async_get_quotes_from_show(title_url_encoded, id):
             print(f'Sub-page done for {current_url}')
 
         print(f'Page done for {title_url_encoded}')
-
         update_item_with_attribute(id, 'wikiquotes', tv_quotes)
         print(
             f'Updated data on CosmosDB with wikipedia data show with id: {id}')
@@ -162,7 +161,6 @@ async def async_get_quotes_from_show(title_url_encoded, id):
 
 async def async_get_quotes_for_all():
     tasks = []
-
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
         for line in file:
             parsed_info = json.loads(line)
@@ -173,7 +171,11 @@ async def async_get_quotes_for_all():
             query_params = parse_qs(parsed_url.query)
             title_value = query_params.get('title', [None])[0]
             if not title_value:
-                continue
+                parsed_title = parsed_info['wikiquote_url'].split('/')
+                if len(parsed_title) > 0:
+                    title_value = parsed_title[-1]
+                else:
+                    continue
 
             tasks.append(async_get_quotes_from_show(
                 title_value, parsed_info['id']))
