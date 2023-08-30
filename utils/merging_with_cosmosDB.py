@@ -30,6 +30,8 @@ def update_item_with_attribute(id, attribute_name, attribute_body):
         print(f'Not found with id: {id}')
     except exceptions.CosmosHttpResponseError as e:
         print(f'Error during updating of document with id: {id}')
+    except Exception as e:
+        print(f'Problem while updating: {e}')
 
 
 def save_temp_data_needed_for_detail_scraping():

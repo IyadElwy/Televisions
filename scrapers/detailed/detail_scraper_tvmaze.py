@@ -8,7 +8,7 @@ from time import sleep
 from services.aws_rds import retrieve_data
 from services.azure_cosmos_db import CosmosDbConnection
 from pathlib import Path
-from azure.cosmos.exceptions import CosmosResourceExistsError
+from azure.cosmos.exceptions import CosmosResourceExistsError, CosmosHttpResponseError, CosmosResourceNotFoundError
 
 detailed_single_search_base_url = 'https://api.tvmaze.com/singlesearch/shows?q={}{}'
 
@@ -163,6 +163,38 @@ def merge_data():
             file.write(json.dumps(item) + '\n')
 
 
+def update_or_create_item_with_attribute(container, id, attribute_name, attribute_body):
+    try:
+        show = list(container.query_items(
+            query=f'SELECT * FROM c WHERE c.id="{id}"',
+            enable_cross_partition_query=True))[0]
+
+        show[attribute_name] = attribute_body
+        container.replace_item(item=id, body=show)
+
+    except CosmosResourceNotFoundError as e:
+        container.create_item(body={attribute_name: attribute_body})
+    except CosmosHttpResponseError as e:
+        if e.status_code == 429:
+            sleep_amount = (e.headers['x-ms-retry-after-ms'] / 1000) + 1
+            print(
+                f'Encountered: {e.message}. Sleeping for {sleep_amount} seconds')
+            sleep(sleep_amount)
+            update_or_create_item_with_attribute(
+                container, id, attribute_name, attribute_body)
+        else:
+            print(f'Error during updating of document with id: {id}. {e}')
+
+
+def save_to_cosmosDB(container, data):
+    update_or_create_item_with_attribute(
+        container, data['id'], 'id', data['id'])
+    for key in data.keys():
+        update_or_create_item_with_attribute(
+            container, data['id'],  key, data[key])
+    print(f'Saved {data["name"]}')
+
+
 def read_merged_data_and_save_to_cosmoDB():
     with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
         with CosmosDbConnection() as connection:
@@ -170,11 +202,7 @@ def read_merged_data_and_save_to_cosmoDB():
             for line in file:
                 data = json.loads(line)
                 data['id'] = str(data['id'])
-                try:
-                    container.create_item(body=data)
-                    print(f'Saved {data["name"]}')
-                except CosmosResourceExistsError as e:
-                    print(f'Already exists {data["name"]}')
+                save_to_cosmosDB(container, data)
 
     file_path_data = Path('temp/temp_tv_maze_data.ndjson')
     file_path_merged_data = Path('temp/merged_temp_tv_maze_data.ndjson')
@@ -211,10 +239,6 @@ async def async_get_and_merge_info(title, record_to_merge, file):
         print("Limit reached, sleeping for 10 seconds...", title)
         await asyncio.sleep(10)
         return await async_get_and_merge_info(title, record_to_merge, file)
-
-
-# async def process_title(title, record_to_merge, file):
-#     return await async_get_and_merge_info(title, record_to_merge, file)
 
 
 async def async_get_detailed_info_about_all(file):
