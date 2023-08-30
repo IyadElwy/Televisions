@@ -172,7 +172,7 @@ def read_merged_data_and_save_to_cosmoDB():
                 data['id'] = str(data['id'])
                 try:
                     container.create_item(body=data)
-                    print(f'Saved f{data["name"]}')
+                    print(f'Saved {data["name"]}')
                 except CosmosResourceExistsError as e:
                     print(f'Already exists {data["name"]}')
 
