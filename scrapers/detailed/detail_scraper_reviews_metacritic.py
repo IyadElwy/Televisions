@@ -270,17 +270,35 @@ async def async_get_reviews_for_show(url, id):
 
 async def async_get_reviews_for_all():
     tasks = []
-
+    current_chunk = 0
+    chunk = 100
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
-        for line in file:
-            parsed_info = json.loads(line)
-            if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
-                continue
+        while True:
+            file.seek(0)
+            titles_to_process = []
+            lines_to_read = file.readlines(
+            )[current_chunk: current_chunk + chunk]
 
-        tasks.append(async_get_reviews_for_show(
-            parsed_info['metacritic_url'], parsed_info['id']))
+            if len(lines_to_read) <= 0:
+                break
 
-    return await asyncio.gather(*tasks)
+            for line in lines_to_read:
+                parsed_info = json.loads(line)
+                if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
+                    continue
+
+                titles_to_process.append(
+                    (parsed_info['metacritic_url'], parsed_info['id']))
+
+            tasks.extend([async_get_reviews_for_show(t[0], t[1])
+                         for t in titles_to_process])
+            await asyncio.gather(*tasks)
+            current_chunk += chunk
+            tasks = []
+            print(f'Chunk {current_chunk} done')
+
+    return
+
 
 ####################################################################################
 

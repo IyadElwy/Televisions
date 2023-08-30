@@ -161,26 +161,42 @@ async def async_get_quotes_from_show(title_url_encoded, id):
 
 async def async_get_quotes_for_all():
     tasks = []
+    current_chunk = 0
+    chunk = 100
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
-        for line in file:
-            parsed_info = json.loads(line)
-            if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:
-                continue
+        while True:
+            file.seek(0)
+            titles_to_process = []
+            lines_to_read = file.readlines(
+            )[current_chunk: current_chunk + chunk]
 
-            parsed_url = urlparse(parsed_info['wikiquote_url'])
-            query_params = parse_qs(parsed_url.query)
-            title_value = query_params.get('title', [None])[0]
-            if not title_value:
-                parsed_title = parsed_info['wikiquote_url'].split('/')
-                if len(parsed_title) > 0:
-                    title_value = parsed_title[-1]
-                else:
+            if len(lines_to_read) <= 0:
+                break
+
+            for line in lines_to_read:
+                parsed_info = json.loads(line)
+                if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:
                     continue
 
-            tasks.append(async_get_quotes_from_show(
-                title_value, parsed_info['id']))
+                parsed_url = urlparse(parsed_info['wikiquote_url'])
+                query_params = parse_qs(parsed_url.query)
+                title_value = query_params.get('title', [None])[0]
+                if not title_value:
+                    parsed_title = parsed_info['wikiquote_url'].split('/')
+                    if len(parsed_title) > 0:
+                        title_value = parsed_title[-1]
+                    else:
+                        continue
+                titles_to_process.append((title_value, parsed_info['id']))
 
-    return await asyncio.gather(*tasks)
+            tasks.extend([async_get_quotes_from_show(t[0], t[1])
+                         for t in titles_to_process])
+            await asyncio.gather(*tasks)
+            current_chunk += chunk
+            tasks = []
+            print(f'Chunk {current_chunk} done')
+
+    return
 
 ####################################################################################
 
