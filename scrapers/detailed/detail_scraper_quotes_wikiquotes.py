@@ -8,6 +8,7 @@ from aiohttp.client_exceptions import ClientConnectionError, \
     ClientResponseError, ClientError, TooManyRedirects, InvalidURL
 import json
 
+from services.azure_cosmos_db import CosmosDbConnection
 from utils.merging_with_cosmosDB import update_item_with_attribute
 
 base_url = 'https://en.wikiquote.org/wiki/'
@@ -120,7 +121,7 @@ async def async_check_for_nested_seasons(title_url_encoded):
                     season += 1
 
 
-async def async_get_quotes_from_show(title_url_encoded, id):
+async def async_get_quotes_from_show(conn, title_url_encoded, id):
     """
     title can come from wikiquotes url or wikipedia url (same format for titles in url)
     """
@@ -146,7 +147,7 @@ async def async_get_quotes_from_show(title_url_encoded, id):
             print(f'Sub-page done for {current_url}')
 
         print(f'Page done for {title_url_encoded}')
-        update_item_with_attribute(id, 'wikiquotes', tv_quotes)
+        update_item_with_attribute(conn, id, 'wikiquotes', tv_quotes)
         print(
             f'Updated data on CosmosDB with wikipedia data show with id: {id}')
 
@@ -164,37 +165,39 @@ async def async_get_quotes_for_all():
     current_chunk = 0
     chunk = 100
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
-        while True:
-            file.seek(0)
-            titles_to_process = []
-            lines_to_read = file.readlines(
-            )[current_chunk: current_chunk + chunk]
+        with CosmosDbConnection() as conn:
 
-            if len(lines_to_read) <= 0:
-                break
+            while True:
+                file.seek(0)
+                titles_to_process = []
+                lines_to_read = file.readlines(
+                )[current_chunk: current_chunk + chunk]
 
-            for line in lines_to_read:
-                parsed_info = json.loads(line)
-                if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:
-                    continue
+                if len(lines_to_read) <= 0:
+                    break
 
-                parsed_url = urlparse(parsed_info['wikiquote_url'])
-                query_params = parse_qs(parsed_url.query)
-                title_value = query_params.get('title', [None])[0]
-                if not title_value:
-                    parsed_title = parsed_info['wikiquote_url'].split('/')
-                    if len(parsed_title) > 0:
-                        title_value = parsed_title[-1]
-                    else:
+                for line in lines_to_read:
+                    parsed_info = json.loads(line)
+                    if 'wikiquote_url' not in parsed_info or not parsed_info['wikiquote_url']:
                         continue
-                titles_to_process.append((title_value, parsed_info['id']))
 
-            tasks.extend([async_get_quotes_from_show(t[0], t[1])
-                         for t in titles_to_process])
-            await asyncio.gather(*tasks)
-            current_chunk += chunk
-            tasks = []
-            print(f'Chunk {current_chunk} done')
+                    parsed_url = urlparse(parsed_info['wikiquote_url'])
+                    query_params = parse_qs(parsed_url.query)
+                    title_value = query_params.get('title', [None])[0]
+                    if not title_value:
+                        parsed_title = parsed_info['wikiquote_url'].split('/')
+                        if len(parsed_title) > 0:
+                            title_value = parsed_title[-1]
+                        else:
+                            continue
+                    titles_to_process.append((title_value, parsed_info['id']))
+
+                tasks.extend([async_get_quotes_from_show(conn, t[0], t[1])
+                              for t in titles_to_process])
+                await asyncio.gather(*tasks)
+                current_chunk += chunk
+                tasks = []
+                print(f'Chunk {current_chunk} done')
 
     return
 

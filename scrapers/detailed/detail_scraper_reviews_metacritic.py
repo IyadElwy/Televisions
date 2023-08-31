@@ -6,6 +6,7 @@ import aiohttp
 import asyncio
 from aiohttp.client_exceptions import ClientConnectionError, \
     ClientResponseError, ClientError, TooManyRedirects, InvalidURL
+from services.azure_cosmos_db import CosmosDbConnection
 
 
 from utils.merging_with_cosmosDB import update_item_with_attribute
@@ -241,7 +242,7 @@ async def async_extract_reviews_for_user_page(initial_url):
     return reviews
 
 
-async def async_get_reviews_for_show(url, id):
+async def async_get_reviews_for_show(conn, url, id):
     try:
         uniform_url = reformat_url_to_be_uniform(url)
 
@@ -255,7 +256,7 @@ async def async_get_reviews_for_show(url, id):
         result = {'critics': extracted_critic_reviews,
                   'users': extracted_user_reviews}
 
-        update_item_with_attribute(id, 'metacritic', result)
+        update_item_with_attribute(conn, id, 'metacritic', result)
         print(
             f'Updated data on CosmosDB with wikipedia data show with id: {id}')
 
@@ -273,29 +274,30 @@ async def async_get_reviews_for_all():
     current_chunk = 0
     chunk = 100
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
-        while True:
-            file.seek(0)
-            titles_to_process = []
-            lines_to_read = file.readlines(
-            )[current_chunk: current_chunk + chunk]
+        with CosmosDbConnection() as conn:
+            while True:
+                file.seek(0)
+                titles_to_process = []
+                lines_to_read = file.readlines(
+                )[current_chunk: current_chunk + chunk]
 
-            if len(lines_to_read) <= 0:
-                break
+                if len(lines_to_read) <= 0:
+                    break
 
-            for line in lines_to_read:
-                parsed_info = json.loads(line)
-                if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
-                    continue
+                for line in lines_to_read:
+                    parsed_info = json.loads(line)
+                    if 'metacritic_url' not in parsed_info or not parsed_info['metacritic_url']:
+                        continue
 
-                titles_to_process.append(
-                    (parsed_info['metacritic_url'], parsed_info['id']))
+                    titles_to_process.append(
+                        (parsed_info['metacritic_url'], parsed_info['id']))
 
-            tasks.extend([async_get_reviews_for_show(t[0], t[1])
-                         for t in titles_to_process])
-            await asyncio.gather(*tasks)
-            current_chunk += chunk
-            tasks = []
-            print(f'Chunk {current_chunk} done')
+                tasks.extend([async_get_reviews_for_show(conn, t[0], t[1])
+                              for t in titles_to_process])
+                await asyncio.gather(*tasks)
+                current_chunk += chunk
+                tasks = []
+                print(f'Chunk {current_chunk} done')
 
     return
 

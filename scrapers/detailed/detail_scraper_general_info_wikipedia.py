@@ -2,6 +2,7 @@ import wikipediaapi
 import json
 
 from utils.merging_with_cosmosDB import update_item_with_attribute
+from services.azure_cosmos_db import CosmosDbConnection
 
 wikipedia_searcher = wikipediaapi.Wikipedia('wikipedia api', 'en')
 
@@ -50,21 +51,23 @@ def get_wikipedia_info(title):
 
 def get_detailed_info_for_all():
     with open('temp/data_needed_for_detailed_scraper.ndjson', 'r') as file:
+        with CosmosDbConnection() as conn:
 
-        for line in file:
-            parsed_info = json.loads(line)
-            id = parsed_info['id']
-            if 'wikipedia_url' not in parsed_info or not parsed_info['wikipedia_url']:
-                continue
-            wikipedia_url = parsed_info['wikipedia_url']
-            slug = wikipedia_url.split('wiki/')
-            if len(slug) == 0:
-                continue
-            title = slug[-1].replace('-', ' ').replace('_', ' ')
-            data = get_wikipedia_info(title)
-            update_item_with_attribute(parsed_info['id'], 'wikipedia', data)
-            print(
-                f'Updated data on CosmosDB with wikipedia data show with id: {id}')
+            for line in file:
+                parsed_info = json.loads(line)
+                id = parsed_info['id']
+                if 'wikipedia_url' not in parsed_info or not parsed_info['wikipedia_url']:
+                    continue
+                wikipedia_url = parsed_info['wikipedia_url']
+                slug = wikipedia_url.split('wiki/')
+                if len(slug) == 0:
+                    continue
+                title = slug[-1].replace('-', ' ').replace('_', ' ')
+                data = get_wikipedia_info(title)
+                update_item_with_attribute(
+                    conn, parsed_info['id'], 'wikipedia', data)
+                print(
+                    f'Updated data on CosmosDB with wikipedia data show with id: {id}')
 
 
 ####################################################################################

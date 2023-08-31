@@ -18,19 +18,18 @@ def delete_temp_file_needed_for_scraping():
         file_path_data.unlink()
 
 
-def update_item_with_attribute(id, attribute_name, attribute_body):
+def update_item_with_attribute(conn, id, attribute_name, attribute_body):
     try:
-        with CosmosDbConnection() as conn:
-            show = list(conn.container.query_items(
-                query=f'SELECT * FROM c WHERE c.id="{id}"',
-                enable_cross_partition_query=True))
+        show = list(conn.container.query_items(
+            query=f'SELECT * FROM c WHERE c.id="{id}"',
+            enable_cross_partition_query=True))
 
-            if len(show) == 0:
-                raise exceptions.CosmosResourceNotFoundError()
+        if len(show) == 0:
+            raise exceptions.CosmosResourceNotFoundError()
 
-            show = show[0]
-            show[attribute_name] = attribute_body
-            conn.container.replace_item(item=id, body=show)
+        show = show[0]
+        show[attribute_name] = attribute_body
+        conn.container.replace_item(item=id, body=show)
     except exceptions.CosmosResourceNotFoundError as e:
         print(f'Not found with id: {id}')
     except exceptions.CosmosHttpResponseError as e:
