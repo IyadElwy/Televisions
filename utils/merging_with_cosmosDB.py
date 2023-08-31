@@ -33,7 +33,15 @@ def update_item_with_attribute(conn, id, attribute_name, attribute_body):
     except exceptions.CosmosResourceNotFoundError as e:
         print(f'Not found with id: {id}')
     except exceptions.CosmosHttpResponseError as e:
-        print(f'Error during updating of document with id: {id}')
+        if e.status_code == 429:
+            sleep_amount = (e.headers['x-ms-retry-after-ms'] / 1000) + 1
+            print(
+                f'Encountered: {e.message}. Sleeping for {sleep_amount} seconds')
+            sleep(sleep_amount)
+            update_item_with_attribute(
+                conn, id, attribute_name, attribute_body)
+        else:
+            print(f'Error during updating of document with id: {id}. {e}')
     except Exception as e:
         print(f'Problem while updating: {e}')
 
