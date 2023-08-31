@@ -2,6 +2,7 @@ from services.azure_cosmos_db import CosmosDbConnection
 import azure.cosmos.exceptions as exceptions
 import json
 from pathlib import Path
+from time import sleep
 
 
 def save_json_to_local_temp_file(data, filename):
@@ -38,9 +39,9 @@ def update_item_with_attribute(id, attribute_name, attribute_body):
         print(f'Problem while updating: {e}')
 
 
-def save_temp_data_needed_for_detail_scraping():
+def save_temp_data_needed_for_detail_scraping(starting_offset=0):
     chunk_size = 50
-    offset = 0
+    offset = starting_offset
 
     try:
         with CosmosDbConnection() as conn:
@@ -61,4 +62,11 @@ def save_temp_data_needed_for_detail_scraping():
                 print(f'Got chunk starting with offset {offset}')
                 offset += chunk_size
     except exceptions.CosmosHttpResponseError as e:
-        print(f'Error during saving temp data locally. Error: {e.message}')
+        if e.status_code == 429:
+            sleep_amount = (e.headers['x-ms-retry-after-ms'] / 1000) + 1
+            print(
+                f'Encountered: {e.message}. Sleeping for {sleep_amount} seconds')
+            sleep(sleep_amount)
+            save_temp_data_needed_for_detail_scraping(offset)
+        else:
+            print(f'Error during updating of document with id: {id}. {e}')

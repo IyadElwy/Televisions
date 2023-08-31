@@ -48,10 +48,10 @@ with DAG('detailed_scrapers',
         task_id='metacritic_detailed_scraper',
         dag=dag)
 
-    delete_temp_file_needed_for_detail_scraping = PythonOperator(
-        python_callable=delete_temp_file_needed_for_scraping,
-        task_id='delete_temp_file_needed_for_detail_scraping',
-        dag=dag)
+    # delete_temp_file_needed_for_detail_scraping = PythonOperator(
+    #     python_callable=delete_temp_file_needed_for_scraping,
+    #     task_id='delete_temp_file_needed_for_detail_scraping',
+    #     dag=dag)
 
     tv_maze_detailed_scraper.set_downstream(
         tv_maze_detailed_scraper_merger)
