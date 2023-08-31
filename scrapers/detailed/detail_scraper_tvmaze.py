@@ -138,6 +138,7 @@ def save_json_to_local_temp_file(file, data):
 
 
 def merge_data():
+    print('Starting merging of data')
     merged_data_items = {}
 
     with open(f'temp/temp_tv_maze_data.ndjson', 'r') as file:
@@ -161,6 +162,8 @@ def merge_data():
     with open(f'temp/merged_temp_tv_maze_data.ndjson', 'a+') as file:
         for item in merged_data_items.values():
             file.write(json.dumps(item) + '\n')
+
+    print('Done with merging of data')
 
 
 def update_or_create_item_with_attribute(container, id, attribute_name, attribute_body):
@@ -199,6 +202,8 @@ def save_to_cosmosDB(container, data):
 
 
 def read_merged_data_and_save_to_cosmoDB():
+    print('Starting saving of data')
+
     with open('temp/merged_temp_tv_maze_data.ndjson', 'r') as file:
         with CosmosDbConnection() as connection:
             container = connection.container
@@ -207,13 +212,14 @@ def read_merged_data_and_save_to_cosmoDB():
                 data['id'] = str(data['id'])
                 save_to_cosmosDB(container, data)
 
-    file_path_data = Path('temp/temp_tv_maze_data.ndjson')
-    file_path_merged_data = Path('temp/merged_temp_tv_maze_data.ndjson')
+    # file_path_data = Path('temp/temp_tv_maze_data.ndjson')
+    # file_path_merged_data = Path('temp/merged_temp_tv_maze_data.ndjson')
 
-    if file_path_data.exists():
-        file_path_data.unlink()
-    if file_path_merged_data.exists():
-        file_path_merged_data.unlink()
+    # if file_path_data.exists():
+    #     file_path_data.unlink()
+    # if file_path_merged_data.exists():
+    #     file_path_merged_data.unlink()
+    print('Done saving data')
 
 
 async def async_get_and_merge_info(title, record_to_merge, file):
@@ -281,9 +287,3 @@ def start_scraper():
     file.close()
     print("Done with detailed scraper for tv maze")
     print('Written data locally')
-    print('Starting merging of data')
-    merge_data()
-    print('Done with merging of data')
-    print('Starting saving of data')
-    read_merged_data_and_save_to_cosmoDB()
-    print('Done saving data')

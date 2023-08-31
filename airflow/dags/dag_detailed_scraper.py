@@ -21,6 +21,14 @@ with DAG('detailed_scrapers',
         python_callable=detail_scraper_tvmaze.start_scraper,
         task_id='tv_maze_detailed_scraper',
         dag=dag)
+    tv_maze_detailed_scraper_merger = PythonOperator(
+        python_callable=detail_scraper_tvmaze.merge_data,
+        task_id='tv_maze_detailed_scraper_merger',
+        dag=dag)
+    tv_maze_detailed_scraper_save_to_cosmos = PythonOperator(
+        python_callable=detail_scraper_tvmaze.read_merged_data_and_save_to_cosmoDB,
+        task_id='tv_maze_detailed_scraper_save_to_cosmos',
+        dag=dag)
 
     save_temp_for_other_detailed_scrapers = PythonOperator(
         python_callable=save_temp_data_needed_for_detail_scraping,
@@ -46,10 +54,18 @@ with DAG('detailed_scrapers',
         dag=dag)
 
     tv_maze_detailed_scraper.set_downstream(
+        tv_maze_detailed_scraper_merger)
+    tv_maze_detailed_scraper_merger.set_downstream(
+        tv_maze_detailed_scraper_save_to_cosmos)
+    tv_maze_detailed_scraper_save_to_cosmos.set_downstream(
         save_temp_for_other_detailed_scrapers)
+
     save_temp_for_other_detailed_scrapers.set_downstream(
         wikipedia_detailed_scraper)
+
     wikipedia_detailed_scraper.set_downstream(wikiquotes_detailed_scraper)
+
     wikiquotes_detailed_scraper.set_downstream(metacritic_detailed_scraper)
-    metacritic_detailed_scraper.set_downstream(
-        delete_temp_file_needed_for_detail_scraping)
+
+    # metacritic_detailed_scraper.set_downstream(
+    #     delete_temp_file_needed_for_detail_scraping)
