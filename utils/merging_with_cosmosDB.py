@@ -6,7 +6,7 @@ from time import sleep
 
 
 def save_json_to_local_temp_file(data, filename):
-    with open(f'temp/{filename}', 'a+') as file:
+    with open(f'temp/{filename}', 'a') as file:
         file.write(json.dumps(data) + '\n')
 
 

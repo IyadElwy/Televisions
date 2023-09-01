@@ -159,7 +159,7 @@ def merge_data():
                     if not urls[url] and data[url]:
                         merged_data_items[data['id']][url] = data[url]
 
-    with open(f'temp/merged_temp_tv_maze_data.ndjson', 'a+') as file:
+    with open(f'temp/merged_temp_tv_maze_data.ndjson', 'a') as file:
         for item in merged_data_items.values():
             file.write(json.dumps(item) + '\n')
 
