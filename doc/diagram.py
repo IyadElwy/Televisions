@@ -46,18 +46,11 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
         s3 >> crawler
         crawler >> glue >> data_catalog
 
-    athena = Athena("Athena")
-    data_catalog >> athena
-
-    lambda_fn = Lambda("Lambda")
-    athena >> lambda_fn
-
     redshift = Redshift("Redshift")
-    lambda_fn >> redshift
+    data_catalog >> redshift
 
     slack = Slack("Slack")
     airflow >> slack
-    lambda_fn >> slack
 
     redshift >> Quicksight("Quicksight")
     redshift >> Tableau("Tableau")
