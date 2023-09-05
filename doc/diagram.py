@@ -20,7 +20,6 @@ with Diagram('Televisions Data Pipeline', show=False, filename='doc/data_pipelin
         data_sources = [Custom('Wikiquote', 'assets/website.png'),
                         Custom('Metacritic', 'assets/website.png'),
                         Custom('Wikipedia', 'assets/website.png'),
-                        Custom('eztv', 'assets/website.png'),
                         Custom('TvMaze', 'assets/api.png'),]
     airflow = Airflow('Airflow')
 
